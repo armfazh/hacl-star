@@ -267,6 +267,35 @@ let carry_wide_felem5_fits_lemma0 #w inp =
   carry26_wide_fits_lemma #w #30 x4 c3
 
 
+val carry_wide_felem5_fits_lemma_compact:
+    #w:lanes
+  -> inp:felem_wide5 w ->
+  Lemma
+  (requires felem_wide_fits5 inp (126, 102, 78, 54, 30))
+  (ensures  felem_fits5 (carry_wide_felem5_compact inp) (1, 2, 1, 1, 2))
+
+let carry_wide_felem5_fits_lemma_compact #w inp =
+  let (x0, x1, x2, x3, x4) = inp in
+  let t0, c0 = carry26_wide_zero x0 in
+  let t1, c1 = carry26_wide x1 c0 in
+  let t2, c2 = carry26_wide x2 c1 in
+  let t3, c3 = carry26_wide_zero x3 in
+  let t3', c6 = carry26 t3 c2 in
+  let t4, c4 = carry26_wide x4 c3 in
+  let t4' = vec_add_mod t4 c6 in
+  carry_wide_felem5_fits_lemma0 #w inp;
+  //let tmp = (t0, t1, t2, t3', t4') in
+  //assert (felem_fits5 tmp (1, 1, 1, 1, 2) /\ felem_fits1 c4 31);
+  let c4_mul5 = vec_smul_mod c4 (u64 5) in
+  //assert (uint64xN_fits c4_mul5 (155 * max26));
+  let t0', c5 = carry26 t0 c4_mul5 in
+  carry26_fits_lemma 155 1 t0 c4_mul5
+  //assert (felem_fits1 t0' 1 /\ uint64xN_fits c5 156);
+  //assert (felem_fits5 (t0', t1, t2, t3', t4')  (1, 1, 1, 1, 2));
+  //let t1' = vec_add_mod t1 c5 in
+  //assert (felem_fits5 (t0', t1', t2, t3', t4')  (1, 2, 1, 1, 2))
+
+
 val carry_wide_felem5_fits_lemma:
     #w:lanes
   -> inp:felem_wide5 w ->
@@ -282,11 +311,9 @@ let carry_wide_felem5_fits_lemma #w inp =
   let t3, c3 = carry26_wide_zero x3 in
   let t3', c6 = carry26 t3 c2 in
   let t4, c4 = carry26_wide x4 c3 in
-  let t4' = vec_add_mod t4 c6 in
-  carry_wide_felem5_fits_lemma0 #w inp;
   vec_smul_mod_five c4;
-  let t0', c5 = carry26 t0 (vec_smul_mod c4 (u64 5)) in
-  carry26_fits_lemma 155 1 t0 (vec_smul_mod c4 (u64 5))
+  assert (carry_wide_felem5 inp == carry_wide_felem5_compact inp);
+  carry_wide_felem5_fits_lemma_compact #w inp
 
 
 val carry_wide_felem5_eval_lemma_i0:
